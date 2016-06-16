@@ -43,8 +43,8 @@ Model getObjInfo(string fp) {
         
         if (type == "v ") {
             model.positions++;
-        } else if (type == "vt") {
-            model.texels++;
+//        } else if (type == "vt") {
+  //          model.texels++;
         } else if (type == "vn") {
             model.normals++;
         } else if (type == "f ") {
@@ -100,7 +100,7 @@ void extractOBJData(string fp, float positions[][3], float texels[][2], float no
             // Wrap up
             delete[] l;
             p++;
-        } else if (type == "vt") {
+       /* } else if (type == "vt") {
             char* l = new char[line.size()+1];
             memcpy(l, line.c_str(), line.size()+1);
             
@@ -109,7 +109,7 @@ void extractOBJData(string fp, float positions[][3], float texels[][2], float no
                 texels[t][i] = atof(strtok(NULL, " "));
             
             delete[] l;
-            t++;
+            t++;*/
         } else if (type == "vn") {
             char* l = new char[line.size()+1];
             memcpy(l, line.c_str(), line.size()+1);
@@ -152,7 +152,7 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     
     // Write statistics
     outJava << "// Positions: " << model.positions << endl;
-    outJava << "// Texels: " << model.texels << endl;
+    //outJava << "// Texels: " << model.texels << endl;
     outJava << "// Normals: " << model.normals << endl;
     outJava << "// Faces: " << model.faces << endl;
     outJava << "// Vertices: " << model.vertices << endl;
@@ -161,7 +161,7 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     // Write declarations
     outJava << "public static final int VERTICES;" << endl;
     outJava << "public static final float[] POSITIONS;" << endl;
-    outJava << "public static final float[] TEXELS;" << endl;
+    //outJava << "public static final float[] TEXELS;" << endl;
     outJava << "public static final float[] NORMALS;" << endl;
     outJava << endl;
     
@@ -188,7 +188,7 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     outJava << endl;
     
     // write texels
-    outJava << "TEXELS = new float[] {" << endl;
+    /*outJava << "TEXELS = new float[] {" << endl;
     for(int i=0; i<model.faces; i++)
     {
         int vtA = faces[i][1] - 1;
@@ -200,7 +200,7 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
         outJava << texels[vtC][0] << "f, " << texels[vtC][1] << "f, " << endl;
     }
     outJava << "};" << endl;
-    outJava << endl;
+    outJava << endl;*/
     
     // write normals
     outJava << "NORMALS = new float[] {" << endl;
