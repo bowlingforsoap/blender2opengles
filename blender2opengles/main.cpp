@@ -136,151 +136,102 @@ void extractOBJData(string fp, float positions[][3], float texels[][2], float no
     inOBJ.close();
 }
 
-void writeH(string hp, string name, Model model) {
-    ofstream outH;
-    outH.open(hp);
+void writeJava(string classFilePath, string name, Model model, int faces[][9], float positions[][3], float texels[][2], float normals[][3]) {
+    ofstream outJava;
+    outJava.open(classFilePath);
     
-    if (!outH.good()) {
-        cout << "ERROR CREATING H FILE" << endl;
+    if (!outJava.good()) {
+        cout << "ERROR CREATING .java FILE" << endl;
         exit(1);
     }
     
-    outH << "// This is a .h file for the model: " << name << endl;
-    outH << endl;
+    outJava << "// This is a .java file for the model: " << name << endl;
+    outJava << endl;
+    
+    outJava << "public class " << name << " {" << endl;
     
     // Write statistics
-    outH << "// Positions: " << model.positions << endl;
-    outH << "// Texels: " << model.texels << endl;
-    outH << "// Normals: " << model.normals << endl;
-    outH << "// Faces: " << model.faces << endl;
-    outH << "// Vertices: " << model.vertices << endl;
-    outH << endl;
+    outJava << "// Positions: " << model.positions << endl;
+    outJava << "// Texels: " << model.texels << endl;
+    outJava << "// Normals: " << model.normals << endl;
+    outJava << "// Faces: " << model.faces << endl;
+    outJava << "// Vertices: " << model.vertices << endl;
+    outJava << endl;
     
     // Write declarations
-    outH << "const int " << name << "Vertices;" << endl;
-    outH << "const float " << name << "Positions[" << model.vertices*3 << "];" << endl;
-    outH << "const float " << name << "Texels[" << model.vertices*2 << "];" << endl;
-    outH << "const float " << name << "Normals[" << model.vertices*3 << "];" << endl;
-    outH << endl;
+    outJava << "public static final int VERTICES;" << endl;
+    outJava << "public static final float[] POSITIONS;" << endl;
+    outJava << "public static final float[] TEXELS;" << endl;
+    outJava << "public static final float[] NORMALS;" << endl;
+    outJava << endl;
     
-    outH.close();
-}
-
-void writeCvertices(string fp, string name, Model model)
-{
-    // Create C file
-    ofstream outC;
-    outC.open(fp);
-    if(!outC.good())
-    {
-        cout << "ERROR CREATING C FILE" << endl;
-        exit(1);
-    }
-    
-    // Write to C file
-    outC << "// This is a .c file for the model: " << name << endl;
-    outC << endl;
-    
-    // Header
-    outC << "#include " << "\"" << name << ".h" << "\"" << endl;
-    outC << endl;
+    // Write static initializer definitions
+    outJava << "static {" << endl;
     
     // Vertices
-    outC << "const int " << name << "Vertices = " << model.vertices << ";" << endl;
-    outC << endl;
+    outJava << "VERTICES = " << model.vertices << ";" << endl;
+    outJava << endl;
     
-    // Close C file
-    outC.close();
-}
-
-void writeCpositions(string fp, string name, Model model, int faces[][9], float positions[][3])
-{
-    // 2
-    // Append C file
-    ofstream outC;
-    outC.open(fp, ios::app);
-    
-    // Positions
-    outC << "const float " << name << "Positions[" << model.vertices*3 << "] = " << endl;
-    outC << "{" << endl;
+    // write positions
+    outJava << "POSITIONS = new float[] {" << endl;
     for(int i=0; i<model.faces; i++)
     {
-        // 3
         int vA = faces[i][0] - 1;
         int vB = faces[i][3] - 1;
         int vC = faces[i][6] - 1;
         
-        // 4
-        outC << positions[vA][0] << ", " << positions[vA][1] << ", " << positions[vA][2] << ", " << endl;
-        outC << positions[vB][0] << ", " << positions[vB][1] << ", " << positions[vB][2] << ", " << endl;
-        outC << positions[vC][0] << ", " << positions[vC][1] << ", " << positions[vC][2] << ", " << endl;
+        outJava << positions[vA][0] << "f, " << positions[vA][1] << "f, " << positions[vA][2] << "f, " << endl;
+        outJava << positions[vB][0] << "f, " << positions[vB][1] << "f, " << positions[vB][2] << "f, " << endl;
+        outJava << positions[vC][0] << "f, " << positions[vC][1] << "f, " << positions[vC][2] << "f, " << endl;
     }
-    outC << "};" << endl;
-    outC << endl;
+    outJava << "};" << endl;
+    outJava << endl;
     
-    // Close C file
-    outC.close();
-}
-
-void writeCtexels(string fp, string name, Model model, int faces[][9], float texels[][2])
-{
-    // Append C file
-    ofstream outC;
-    outC.open(fp, ios::app);
-    
-    // Texels
-    outC << "const float " << name << "Texels[" << model.vertices*2 << "] = " << endl;
-    outC << "{" << endl;
+    // write texels
+    outJava << "TEXELS = new float[] {" << endl;
     for(int i=0; i<model.faces; i++)
     {
         int vtA = faces[i][1] - 1;
         int vtB = faces[i][4] - 1;
         int vtC = faces[i][7] - 1;
         
-        outC << texels[vtA][0] << ", " << texels[vtA][1] << ", " << endl;
-        outC << texels[vtB][0] << ", " << texels[vtB][1] << ", " << endl;
-        outC << texels[vtC][0] << ", " << texels[vtC][1] << ", " << endl;
+        outJava << texels[vtA][0] << "f, " << texels[vtA][1] << "f, " << endl;
+        outJava << texels[vtB][0] << "f, " << texels[vtB][1] << "f, " << endl;
+        outJava << texels[vtC][0] << "f, " << texels[vtC][1] << "f, " << endl;
     }
-    outC << "};" << endl;
-    outC << endl;
+    outJava << "};" << endl;
+    outJava << endl;
     
-    // Close C file
-    outC.close();
-}
-
-void writeCnormals(string fp, string name, Model model, int faces[][9], float normals[][3])
-{
-    // Append C file
-    ofstream outC;
-    outC.open(fp, ios::app);
-    
-    // Normals
-    outC << "const float " << name << "Normals[" << model.vertices*3 << "] = " << endl;
-    outC << "{" << endl;
+    // write normals
+    outJava << "NORMALS = new float[] {" << endl;
     for(int i=0; i<model.faces; i++)
     {
         int vnA = faces[i][2] - 1;
         int vnB = faces[i][5] - 1;
         int vnC = faces[i][8] - 1;
         
-        outC << normals[vnA][0] << ", " << normals[vnA][1] << ", " << normals[vnA][2] << ", " << endl;
-        outC << normals[vnB][0] << ", " << normals[vnB][1] << ", " << normals[vnB][2] << ", " << endl;
-        outC << normals[vnC][0] << ", " << normals[vnC][1] << ", " << normals[vnC][2] << ", " << endl;
+        outJava << normals[vnA][0] << "f, " << normals[vnA][1] << "f, " << normals[vnA][2] << "f, " << endl;
+        outJava << normals[vnB][0] << "f, " << normals[vnB][1] << "f, " << normals[vnB][2] << "f, " << endl;
+        outJava << normals[vnC][0] << "f, " << normals[vnC][1] << "f, " << normals[vnC][2] << "f, " << endl;
     }
-    outC << "};" << endl;
-    outC << endl;
+    outJava << "};" << endl;
     
-    // Close C file
-    outC.close();
+    // Close the static initializer
+    outJava << "}" << endl;
+    
+    // Close class
+    outJava << "}";
+    outJava << endl;
+
+    // Close the file
+    outJava.close();
 }
 
 int main(int argc, const char * argv[]) {
     
     string nameOBJ = argv[1];
     string filepathOBJ = "source/" + nameOBJ + ".obj";
-    string filepathH = "product/" + nameOBJ + ".h";
-    string filepathC = "product/" + nameOBJ + ".c";
-    cout << filepathOBJ << endl;
+    string filepathJava = "product/" + nameOBJ + ".java";
     
     Model model = getObjInfo(filepathOBJ);
     cout << "Model info" << endl;
@@ -303,16 +254,7 @@ int main(int argc, const char * argv[]) {
     cout << "F1v1: " << faces[0][0] << "p " << faces[0][1] << "t " << faces[0][2] << "n" << endl;
     
     // Write H file
-    writeH(filepathH, nameOBJ, model);
+    writeJava(filepathJava, nameOBJ, model, faces, positions, texels, normals);
     
-    // Write C file
-    writeCvertices(filepathC, nameOBJ, model);
-    
-    //append positions
-    writeCpositions(filepathC, nameOBJ, model, faces, positions);
-    //texels
-    writeCtexels(filepathC, nameOBJ, model, faces, texels);
-    //normals
-    writeCnormals(filepathC, nameOBJ, model, faces, normals);
     return 0;
 }
