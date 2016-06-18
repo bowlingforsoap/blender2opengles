@@ -44,8 +44,8 @@ Model getObjInfo(string fp) {
         
         if (type == "v ") {
             model.positions++;
-//        } else if (type == "vt") {
-  //          model.texels++;
+            //        } else if (type == "vt") {
+            //          model.texels++;
         } else if (type == "vn") {
             model.normals++;
         } else if (type == "f ") {
@@ -65,7 +65,7 @@ float* findLowestVertex(float positions[][3], int positionsNum) {
     float* lowest = positions[0];
     
     for (int i = 1; i < positionsNum; i++) {
-        if (positions[i][2] < lowest[2]) {
+        if (positions[i][1] < lowest[1]) {
             lowest = positions[i];
         }
     }
@@ -77,7 +77,7 @@ float* findHighestVertex(float positions[][3], int positionsNum) {
     float* highest = positions[0];
     
     for (int i = 1; i < positionsNum; i++) {
-        if (positions[i][2] > highest[2]) {
+        if (positions[i][1] > highest[1]) {
             highest = positions[i];
         }
     }
@@ -125,16 +125,16 @@ void extractOBJData(string fp, float positions[][3], float texels[][2], float no
             // Wrap up
             delete[] l;
             p++;
-       /* } else if (type == "vt") {
-            char* l = new char[line.size()+1];
-            memcpy(l, line.c_str(), line.size()+1);
-            
-            strtok(l, " ");
-            for(int i=0; i<2; i++)
-                texels[t][i] = atof(strtok(NULL, " "));
-            
-            delete[] l;
-            t++;*/
+            /* } else if (type == "vt") {
+             char* l = new char[line.size()+1];
+             memcpy(l, line.c_str(), line.size()+1);
+             
+             strtok(l, " ");
+             for(int i=0; i<2; i++)
+             texels[t][i] = atof(strtok(NULL, " "));
+             
+             delete[] l;
+             t++;*/
         } else if (type == "vn") {
             char* l = new char[line.size()+1];
             memcpy(l, line.c_str(), line.size()+1);
@@ -195,12 +195,12 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     
     // Write the highest and the lowest values.
     if (highestLowest) {
-        float* highest = findHighestVertex(positions, model.vertices);
-        float* lowest = findLowestVertex(positions, model.vertices);
+        float* highest = findHighestVertex(positions, model.positions);
+        float* lowest = findLowestVertex(positions, model.positions);
         outJava << "// The highest vertex of the model." << endl;
-        outJava << "public static final float[] HIGHEST = {" << highest[0] << "f," << highest[1] << "f," << highest[2] << "f};" << endl;
+        outJava << "public static final float[] HIGHEST = {" << highest[0] << "f," << highest[1] << "f," << highest[2] << "f, 1f};" << endl;
         outJava << "// The lowest vertex of the model." << endl;
-        outJava << "public static final float[] LOWEST = {" << lowest[0] << "f," << lowest[1] << "f," << lowest[2] << "f};" << endl;
+        outJava << "public static final float[] LOWEST = {" << lowest[0] << "f," << lowest[1] << "f," << lowest[2] << "f, 1f};" << endl;
     }
     outJava << endl;
     
@@ -228,18 +228,18 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     
     // write texels
     /*outJava << "TEXELS = new float[] {" << endl;
-    for(int i=0; i<model.faces; i++)
-    {
-        int vtA = faces[i][1] - 1;
-        int vtB = faces[i][4] - 1;
-        int vtC = faces[i][7] - 1;
-        
-        outJava << texels[vtA][0] << "f, " << texels[vtA][1] << "f, " << endl;
-        outJava << texels[vtB][0] << "f, " << texels[vtB][1] << "f, " << endl;
-        outJava << texels[vtC][0] << "f, " << texels[vtC][1] << "f, " << endl;
-    }
-    outJava << "};" << endl;
-    outJava << endl;*/
+     for(int i=0; i<model.faces; i++)
+     {
+     int vtA = faces[i][1] - 1;
+     int vtB = faces[i][4] - 1;
+     int vtC = faces[i][7] - 1;
+     
+     outJava << texels[vtA][0] << "f, " << texels[vtA][1] << "f, " << endl;
+     outJava << texels[vtB][0] << "f, " << texels[vtB][1] << "f, " << endl;
+     outJava << texels[vtC][0] << "f, " << texels[vtC][1] << "f, " << endl;
+     }
+     outJava << "};" << endl;
+     outJava << endl;*/
     
     // write normals
     outJava << "NORMALS = new float[] {" << endl;
@@ -261,39 +261,39 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     // Close class
     outJava << "}";
     outJava << endl;
-
+    
     // Close the file
     outJava.close();
 }
 
 int main(int argc, const char * argv[]) {
-    
-    string nameOBJ = argv[1];
-    string filepathOBJ = "source/" + nameOBJ + ".obj";
-    string filepathJava = "product/" + nameOBJ + ".java";
-    
-    Model model = getObjInfo(filepathOBJ);
-    cout << "Model info" << endl;
-    cout << "model.faces: " << model.faces << endl;
-    cout << "model.normals: " << model.normals << endl;
-    cout << "model.positions: " << model.positions << endl;
-    cout << "model.texels: " << model.texels << endl;
-    cout << "model.vertices: " << model.vertices << endl;
-    
-    float positions[model.positions][3]; // XYZ
-    float texels[model.texels][2]; // u, v
-    float normals[model.normals][3]; // XYZ
-    int faces [model.faces][9]; // an entry of pointers (indices). nine integers, to describe the three vertices of a triangular face, where each vertex gets three indexes, one for its position (P), one for its texel (T) and one for its normal (N)
-    
-    extractOBJData(filepathOBJ, positions, texels, normals, faces);
-    cout << "Model Data" << endl;
-    cout << "P1: " << positions[0][0] << "x " << positions[0][1] << "y " << positions[0][2] << "z" << endl;
-    cout << "T1: " << texels[0][0] << "u " << texels[0][1] << "v " << endl;
-    cout << "N1: " << normals[0][0] << "x " << normals[0][1] << "y " << normals[0][2] << "z" << endl;
-    cout << "F1v1: " << faces[0][0] << "p " << faces[0][1] << "t " << faces[0][2] << "n" << endl;
-    
-    // Write H file
-    writeJava(filepathJava, nameOBJ, model, faces, positions, texels, normals, true);
-    
+    for (int i = 1; i < argc; i++) {
+        string nameOBJ = argv[i];
+        string filepathOBJ = "source/" + nameOBJ + ".obj";
+        string filepathJava = "product/" + nameOBJ + ".java";
+        
+        Model model = getObjInfo(filepathOBJ);
+        cout << "Model info" << endl;
+        cout << "model.faces: " << model.faces << endl;
+        cout << "model.normals: " << model.normals << endl;
+        cout << "model.positions: " << model.positions << endl;
+        cout << "model.texels: " << model.texels << endl;
+        cout << "model.vertices: " << model.vertices << endl;
+        
+        float positions[model.positions][3]; // XYZ
+        float texels[model.texels][2]; // u, v
+        float normals[model.normals][3]; // XYZ
+        int faces [model.faces][9]; // an entry of pointers (indices). nine integers, to describe the three vertices of a triangular face, where each vertex gets three indexes, one for its position (P), one for its texel (T) and one for its normal (N)
+        
+        extractOBJData(filepathOBJ, positions, texels, normals, faces);
+        cout << "Model Data" << endl;
+        cout << "P1: " << positions[0][0] << "x " << positions[0][1] << "y " << positions[0][2] << "z" << endl;
+        cout << "T1: " << texels[0][0] << "u " << texels[0][1] << "v " << endl;
+        cout << "N1: " << normals[0][0] << "x " << normals[0][1] << "y " << normals[0][2] << "z" << endl;
+        cout << "F1v1: " << faces[0][0] << "p " << faces[0][1] << "t " << faces[0][2] << "n" << endl;
+        
+        // Write H file
+        writeJava(filepathJava, nameOBJ, model, faces, positions, texels, normals, true);
+    }
     return 0;
 }
