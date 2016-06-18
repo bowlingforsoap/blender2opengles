@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <typeinfo>
 
 using namespace std;
 
@@ -58,6 +59,30 @@ Model getObjInfo(string fp) {
     inOBJ.close();
     
     return model;
+}
+
+float* findLowestVertex(float positions[][3], int positionsNum) {
+    float* lowest = positions[0];
+    
+    for (int i = 1; i < positionsNum; i++) {
+        if (positions[i][2] < lowest[2]) {
+            lowest = positions[i];
+        }
+    }
+    
+    return lowest;
+}
+
+float* findHighestVertex(float positions[][3], int positionsNum) {
+    float* highest = positions[0];
+    
+    for (int i = 1; i < positionsNum; i++) {
+        if (positions[i][2] > highest[2]) {
+            highest = positions[i];
+        }
+    }
+    
+    return highest;
 }
 
 //extract model data
@@ -136,7 +161,10 @@ void extractOBJData(string fp, float positions[][3], float texels[][2], float no
     inOBJ.close();
 }
 
-void writeJava(string classFilePath, string name, Model model, int faces[][9], float positions[][3], float texels[][2], float normals[][3]) {
+/**
+ highestLowest - wheather to write the highest and the lowest vertex to the output file.
+ */
+void writeJava(string classFilePath, string name, Model model, int faces[][9], float positions[][3], float texels[][2], float normals[][3], bool highestLowest) {
     ofstream outJava;
     outJava.open(classFilePath);
     
@@ -163,6 +191,17 @@ void writeJava(string classFilePath, string name, Model model, int faces[][9], f
     outJava << "public static final float[] POSITIONS;" << endl;
     //outJava << "public static final float[] TEXELS;" << endl;
     outJava << "public static final float[] NORMALS;" << endl;
+    outJava << endl;
+    
+    // Write the highest and the lowest values.
+    if (highestLowest) {
+        float* highest = findHighestVertex(positions, model.vertices);
+        float* lowest = findLowestVertex(positions, model.vertices);
+        outJava << "// The highest vertex of the model." << endl;
+        outJava << "public static final float[] HIGHEST = {" << highest[0] << "f," << highest[1] << "f," << highest[2] << "f};" << endl;
+        outJava << "// The lowest vertex of the model." << endl;
+        outJava << "public static final float[] LOWEST = {" << lowest[0] << "f," << lowest[1] << "f," << lowest[2] << "f};" << endl;
+    }
     outJava << endl;
     
     // Write static initializer definitions
@@ -254,7 +293,7 @@ int main(int argc, const char * argv[]) {
     cout << "F1v1: " << faces[0][0] << "p " << faces[0][1] << "t " << faces[0][2] << "n" << endl;
     
     // Write H file
-    writeJava(filepathJava, nameOBJ, model, faces, positions, texels, normals);
+    writeJava(filepathJava, nameOBJ, model, faces, positions, texels, normals, true);
     
     return 0;
 }
